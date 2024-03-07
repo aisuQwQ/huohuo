@@ -39,6 +39,18 @@ async def on_voice_state_update(member, before, after):
         await text_channel.send(f'現在{n}人  {name}さんが退出しました')
 
 
+@client.event #reaction受信時
+async def on_raw_reaction_add(payload):
+    message_id=payload.message_id
+    if(message_id not in message_list):
+        return
+    guild_id=payload.guild_id
+    guild=client.get_guild(guild_id)
+    role=discord.utils.get(guild.roles, name=message_list[message_id])
+    if(role is None):
+        return
+    member=guild.get_member(payload.user_id)
+    await member.add_roles(role)
 
 
 
@@ -53,6 +65,20 @@ async def test(interaction: discord.Interaction):
     await interaction.response.send_message('こんにちは。任務を開始します')
 
     # await client.get_channel(interaction.channel_id).send('こんにちは')
+
+
+message_list={} #[message_id:role_name]
+@tree.command(name='role', description='ロールを付与')
+@discord.app_commands.guilds(416582664062238730)
+@discord.app_commands.describe(
+    text="投稿文",
+    role="付与するロール名"
+)
+async def test(interaction: discord.Interaction, text:str, role:str):
+    await interaction.response.send_message(text)
+    message=await interaction.original_response()
+    message_list[message.id]=role
+    
 
 client.run(TOKEN)
 fileio.export_guild_list(guild_list)
